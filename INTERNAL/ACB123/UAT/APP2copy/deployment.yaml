@@ -1,23 +1,35 @@
-apiVersion: apps/v1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: nginx
-  namespace: argo-demo
-  labels:
-    app.kubernetes.io/name: nginx
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: nginx
+  replicas: 1
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: nginx
+        app: nginx
     spec:
       containers:
       - name: nginx
-        image: nginx:latest
+        image: nginx
         ports:
-        - name: http
-          containerPort: 80
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /etc/nginx # mount nginx-conf volumn to /etc/nginx
+          readOnly: true
+          name: nginx-conf
+        - mountPath: /var/log/nginx
+          name: log
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: nginx-conf # place ConfigMap `nginx-conf` on /etc/nginx
+          items:
+            - key: nginx.conf
+              path: nginx.conf
+            - key: virtualhost.conf
+              path: virtualhost/virtualhost.conf # dig directory
+      - name: log
+        emptyDir: {}
+
+        
